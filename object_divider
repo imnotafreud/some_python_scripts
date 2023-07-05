@@ -1,0 +1,87 @@
+import bpy
+from mathutils import Vector
+
+def check_valid_types(selection):
+    for mesh in selection:
+        if mesh.type != 'MESH':
+            return False
+            raise Exception("Some objects are not meshes")
+    return True
+
+def check_valid_count(selection):
+    if (len(selection) % 2 !=0):
+        return False
+        raise Exception("Choose an even count of objects")
+    else:
+        return True
+
+def is_valid(selection):
+    if not check_valid_types(selection):
+        raise Exception("Some objects are not meshes")
+        return False
+    elif not check_valid_count(selection):
+        raise Exception("Choose an even count of objects")
+        return False
+    else:
+        return True
+
+    
+#calculate polycounts
+def point_count(object):
+    return len(object.data.polygons)
+
+    
+
+selection = bpy.context.selected_objects
+
+objects_hi = []
+objects_low = []
+
+
+distance = 99999999
+basename = "Object_"
+
+if not is_valid(selection):
+    raise Exception()
+    
+    
+if is_valid(selection):
+    
+    objects = selection.copy()
+    print("="*100)
+
+    while(objects):
+        
+        #get the current item for finding sibling for first item
+        current = objects.pop(0)
+        closest = current
+        distance = 99999999
+
+        #iterate over remaining elements and check distance
+        for t in objects:
+            target = t
+            
+            pos_current = current.location
+            pos_target = target.location
+            threshold = (pos_current - pos_target).length
+        #find closest object to current
+            if distance > threshold:
+                distance = threshold
+                closest = t
+                
+        #remove closest object form list of remaining objects
+        objects.remove(closest)
+        #fill arrays with hp and lp meshes
+        
+        if point_count(current) > point_count(closest):
+            objects_hi.append(current)
+            objects_low.append(closest)
+        else:
+            objects_hi.append(closest)
+            objects_low.append(current)            
+        
+#create new names   
+for i in range(int(len(selection)/2)):
+    objects_hi[i].name = basename + str(i) + "_high"
+    objects_low[i].name = basename + str(i) + "_low"
+
